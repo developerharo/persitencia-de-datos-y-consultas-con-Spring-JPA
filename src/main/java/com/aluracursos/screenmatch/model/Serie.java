@@ -1,6 +1,5 @@
 package com.aluracursos.screenmatch.model;
-import com.aluracursos.screenmatch.service.ConsultaChatGPT;
-import com.fasterxml.jackson.annotation.JsonAlias;
+
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -11,7 +10,7 @@ import java.util.OptionalDouble;
 public class Serie {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long Id;
     @Column(unique = true)
     private String titulo;
     private Integer totalTemporadas;
@@ -21,10 +20,12 @@ public class Serie {
     private Categoria genero;
     private String actores;
     private String sinopsis;
-    @Transient
+    @OneToMany(mappedBy = "serie", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Episodio> episodios;
 
-    public Serie(DatosSerie datosSerie) {
+    public Serie(){}
+
+    public Serie(DatosSerie datosSerie){
         this.titulo = datosSerie.titulo();
         this.totalTemporadas = datosSerie.totalTemporadas();
         this.evaluacion = OptionalDouble.of(Double.valueOf(datosSerie.evaluacion())).orElse(0);
@@ -32,7 +33,6 @@ public class Serie {
         this.genero = Categoria.fromString(datosSerie.genero().split(",")[0].trim());
         this.actores = datosSerie.actores();
         this.sinopsis = datosSerie.sinopsis();
-        //this.sinopsis = ConsultaChatGPT.obtenerTraduccion(datosSerie.sinopsis());
     }
 
     @Override
@@ -43,15 +43,26 @@ public class Serie {
                 ", evaluacion=" + evaluacion +
                 ", poster='" + poster + '\'' +
                 ", actores='" + actores + '\'' +
-                ", sinopsis='" + sinopsis + '\'';
+                ", sinopsis='" + sinopsis + '\'' +
+                ", episodios='" + episodios + '\'';
+
+    }
+
+    public List<Episodio> getEpisodios() {
+        return episodios;
+    }
+
+    public void setEpisodios(List<Episodio> episodios) {
+        episodios.forEach(e -> e.setSerie(this));
+        this.episodios = episodios;
     }
 
     public Long getId() {
-        return id;
+        return Id;
     }
 
     public void setId(Long id) {
-        this.id = id;
+        Id = id;
     }
 
     public String getTitulo() {
